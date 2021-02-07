@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace registros
 {
@@ -7,7 +8,8 @@ namespace registros
     {
         static string rutaArchivo;
         static string nombreArchivo;
-        static char delimitador = ',';
+        static readonly char delimitador = ',';
+        static readonly string[] respAfirmativa = { "SI", "Si", "si", "S", "s" };
 
         static void Main(string[] args)
         {
@@ -16,18 +18,15 @@ namespace registros
                 string proc = args[0];
                 string archivo = args[1];
 
-                if (DirectorioValido(archivo))
+                if (proc == "-n" || proc == "-o")
                 {
-                    if (proc == "-n" || proc == "-o")
-                    {
-                        if (ArchivoValido(archivo, proc))
-                            Menu();
-                        else
-                            Console.WriteLine("Ejecución abortada.");
-                    }
+                    if (DirectorioValido(archivo) && ArchivoValido(archivo, proc))
+                        Menu();
                     else
-                        Console.WriteLine("Operador {0} no es válido.");
+                        Console.WriteLine("Ejecución abortada.");
                 }
+                else
+                    Console.WriteLine("Operador {0} no es válido.");
             }
             else
                 MostrarAyuda();
@@ -73,9 +72,10 @@ namespace registros
         {
             Console.Clear();
 
-            // Tarea: Insertar logica mostrar bloques de 25 lineas por pantalla.
+            // Tarea: Insertar logica para mostrar bloques de 25 lineas por pantalla.
 
             string archivo = Path.Combine(rutaArchivo, nombreArchivo);
+            string separador = new string('-', 80);
             int idx = 0;
 
             using (StreamReader reader = new StreamReader(archivo))
@@ -87,7 +87,7 @@ namespace registros
                     if (idx == 0)
                     {
                         Console.WriteLine("      {0}{1}{2}", valor[0].ToUpper().PadRight(25), valor[1].ToUpper().PadRight(25), valor[2].ToUpper().PadRight(30));
-                        Console.WriteLine("{0}", new string('-', 80));
+                        Console.WriteLine(separador);
                     }
                     else
                         Console.WriteLine("{0}{1}{2}{3}", idx.ToString().PadRight(6), valor[0].PadRight(25), valor[1].PadRight(25), valor[2].PadRight(30));
@@ -96,8 +96,8 @@ namespace registros
                 }
             }
 
-            Console.WriteLine("{0}", new string('-', 80));
-            string resp = SolicitarValor("Presione [A]gregar | [B]orrar | Cualquier tecla para salir: ");
+            Console.WriteLine(separador);
+            string resp = SolicitarValor("Presione [A]gregar | [B]orrar | [Enter] para salir. ");
 
             if (resp == "A" || resp == "a")
                 AgregarRegistro();
@@ -121,7 +121,7 @@ namespace registros
             {
                 try
                 {
-                    File.AppendAllText(archivo, $"{nombre}{delimitador}{apellido}{delimitador}{email}");
+                    File.AppendAllText(archivo, $"{nombre}{delimitador}{apellido}{delimitador}{email}" + Environment.NewLine);
                     Console.WriteLine("\n ** Registro agregado **");
                     Console.ReadKey();
                 }
@@ -146,7 +146,6 @@ namespace registros
             {
                 // Tarea: Insertar logica para eliminar linea.
             }
-
         }
 
         static bool ArchivoValido(string _archivo, string _proceso)
@@ -158,8 +157,6 @@ namespace registros
                 nombreArchivo = Path.GetFileName(_archivo);
 
                 string nuevoArchivo = Path.Combine(rutaArchivo, nombreArchivo);
-                string[] respAfirmativa = { "SI", "Si", "si", "S", "s" };
-
                 bool crearArchivo = false;
 
                 if (_proceso == "-n")
@@ -188,7 +185,7 @@ namespace registros
                     try
                     {
                         File.Create(nuevoArchivo).Close();
-                        File.AppendAllText(nuevoArchivo, $"Nombre{delimitador}Apellido{delimitador}Email");
+                        File.AppendAllText(nuevoArchivo, $"Nombre{delimitador}Apellido{delimitador}Email" + Environment.NewLine);
                     }
                     catch (Exception err)
                     {
